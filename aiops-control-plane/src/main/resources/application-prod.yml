@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/aiops_control?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_NODES}
+      password: ${REDIS_PASSWORD}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP}
+
+logging:
+  level:
+    com.aiops: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+  file:
+    name: /var/log/aiops/control-plane.log
+    max-history: 30
+    max-size: 100MB
+
+ai-engine:
+  url: ${AI_ENGINE_URL}
+  api-key: ${AI_ENGINE_KEY}
+
+doris:
+  jdbc-url: jdbc:mysql://${DORIS_FE}:9030/aiops
+  username: ${DORIS_USER}
+  password: ${DORIS_PASSWORD}

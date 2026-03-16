@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # AIOps Java Control Plane
+  - job_name: 'aiops-control-plane'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['java-control-plane:8080']
+    scrape_interval: 10s
+
+  # AIOps Python AI Engine
+  - job_name: 'aiops-ai-engine'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['ai-engine:8000']
+    scrape_interval: 10s
+
+  # Node Exporter (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']

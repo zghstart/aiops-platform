@@ -1,0 +1,172 @@
+# ============================================
+# Java / Spring Boot
+# ============================================
+aiops-control-plane/target/
+aiops-control-plane/build/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+.gradle
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE
+.idea/
+*.idea
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+logs/
+
+# ============================================
+# Python / FastAPI
+# ============================================
+aiops-ai-engine/__pycache__/
+aiops-ai-engine/*.py[cod]
+aiops-ai-engine/*$py.class
+aiops-ai-engine/*.so
+aiops-ai-engine/.Python
+aiops-ai-engine/env/
+aiops-ai-engine/venv/
+aiops-ai-engine/ENV/
+aiops-ai-engine/env.bak/
+aiops-ai-engine/venv.bak/
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+*.mo
+*.pot
+
+# ============================================
+# Node.js / React
+# ============================================
+aiops-dashboard/node_modules/
+aiops-dashboard/dist/
+aiops-dashboard/dist-ssr/
+snode/
+dist/
+dist-ssr/
+*.local
+.env.local
+.env.*.local
+
+# ============================================
+# 环境配置
+# ============================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.secrets
+*.pem
+*.key
+credentials.json
+*secret*
+*password*
+
+# ============================================
+# Docker / K8s
+# ============================================
+.dockerignore
+*.dockerfile
+.docker/
+*.env.docker
+aiops-deploy/docker/volumes/
+aiops-deploy/docker/data/
+
+# ============================================
+# 数据存储
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+mysql-data/
+redis-data/
+kafka-data/
+doris-data/
+milvus-data/
+etcd-data/
+minio-data/
+prometheus-data/
+grafana-data/
+zookeeper-data/
+elasticsearch-data/
+
+# ============================================
+# 日志和临时文件
+# ============================================
+*.log
+*.tmp
+*.temp
+*.cache
+tmp/
+temp/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================
+# 测试文件
+# ============================================
+coverage/
+.nyc_output/
+/coverage
+
+# ============================================
+# 操作系统
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.lnk
+
+# ============================================
+# 其他
+# ============================================
+.history/
+*.bak
+*.backup
+*.orig
+*.rej
+*.swo
+*.swp
+*~
+.vscode-test/

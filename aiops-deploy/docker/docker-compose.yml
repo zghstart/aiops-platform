@@ -1,0 +1,330 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # MySQL - 业务数据存储
+  # ============================================
+  mysql:
+    image: mysql:8.0.36
+    container_name: aiops-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: aiops_root_2024
+      MYSQL_DATABASE: aiops
+      MYSQL_USER: aiops
+      MYSQL_PASSWORD: aiops_pass_2024
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init/mysql:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aiops-network
+
+  # ============================================
+  # Redis - 缓存与会话
+  # ============================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: aiops-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass aiops_redis_2024
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aiops-network
+
+  # ============================================
+  # Kafka - 消息队列
+  # ============================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: aiops-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    networks:
+      - aiops-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: aiops-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:29092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aiops-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: aiops-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - aiops-network
+
+  # ============================================
+  # Apache Doris - 日志/指标/链路统一存储
+  # ============================================
+  doris-fe:
+    image: apache/doris:2.0.3-fe-ubuntu
+    container_name: aiops-doris-fe
+    hostname: doris-fe
+    ports:
+      - "8030:8030"
+      - "9030:9030"
+    environment:
+      - FE_SERVERS=fe1:127.0.0.1:9010
+      - FE_ID=1
+    volumes:
+      - doris-fe-data:/opt/apache-doris/fe/doris-meta
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8030/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aiops-network
+
+  doris-be:
+    image: apache/doris:2.0.3-be-ubuntu
+    container_name: aiops-doris-be
+    hostname: doris-be
+    depends_on:
+      - doris-fe
+    ports:
+      - "9040:9040"
+    environment:
+      - FE_SERVERS=fe1:127.0.0.1:9010
+      - BE_ADDR=127.0.0.1:9050
+    volumes:
+      - doris-be-data:/opt/apache-doris/be/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8040/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aiops-network
+
+  # ============================================
+  # Milvus - 向量检索 (RAG 知识库)
+  # ============================================
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: aiops-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+    volumes:
+      - etcd-data:/etcd
+    command: etcd -advertise-client-urls http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379
+    networks:
+      - aiops-network
+
+  minio:
+    image: minio/minio:RELEASE.2023-09-23T03-47-50Z
+    container_name: aiops-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio-data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aiops-network
+
+  milvus-standalone:
+    image: milvusdb/milvus:v2.3.3
+    container_name: aiops-milvus
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    volumes:
+      - milvus-data:/var/lib/milvus
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - etcd
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aiops-network
+
+  # ============================================
+  # Jaeger - 链路追踪
+  # ============================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: aiops-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - aiops-network
+
+  # ============================================
+  # Prometheus & Grafana - 监控
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: aiops-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - aiops-network
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: aiops-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - aiops-network
+
+  # ============================================
+  # AIOps Services (开发模式)
+  # ============================================
+  java-control-plane:
+    build:
+      context: ../aiops-control-plane
+      dockerfile: Dockerfile
+    container_name: aiops-java-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/aiops?useSSL=false
+      SPRING_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      - mysql
+      - redis
+      - kafka
+    networks:
+      - aiops-network
+    profiles:
+      - services
+
+  ai-engine:
+    build:
+      context: ../aiops-ai-engine
+      dockerfile: Dockerfile
+    container_name: aiops-ai-engine
+    ports:
+      - "8000:8000"
+    environment:
+      - VLLM_BASE_URL=http://host.docker.internal:8001/v1
+      - MILVUS_HOST=milvus-standalone
+      - DORIS_HOST=doris-fe
+    depends_on:
+      - milvus-standalone
+      - doris-fe
+    networks:
+      - aiops-network
+    profiles:
+      - services
+      - ai
+
+  dashboard:
+    build:
+      context: ../aiops-dashboard
+      dockerfile: Dockerfile
+    container_name: aiops-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080
+      - VITE_AI_ENGINE_URL=http://localhost:8000
+    networks:
+      - aiops-network
+    profiles:
+      - services
+      - frontend
+
+volumes:
+  mysql-data:
+  redis-data:
+  zookeeper-data:
+  kafka-data:
+  doris-fe-data:
+  doris-be-data:
+  etcd-data:
+  minio-data:
+  milvus-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  aiops-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

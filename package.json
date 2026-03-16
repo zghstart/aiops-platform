@@ -1,0 +1,17 @@
+{
+  "name": "aiops-platform",
+  "version": "1.0.0",
+  "workspaces": [
+    "aiops-dashboard"
+  ],
+  "scripts": {
+    "dev:control": "cd aiops-control-plane && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev",
+    "dev:ai": "cd aiops-ai-engine && python -m app.main",
+    "dev:dashboard": "cd aiops-dashboard && npm run dev",
+    "build:control": "cd aiops-control-plane && ./mvnw clean package -DskipTests",
+    "build:ai": "cd aiops-ai-engine && docker build -t aiops-ai-engine .",
+    "build:dashboard": "cd aiops-dashboard && npm run build",
+    "docker:up": "docker-compose -f aiops-deploy/docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f aiops-deploy/docker/docker-compose.yml down"
+  }
+}
