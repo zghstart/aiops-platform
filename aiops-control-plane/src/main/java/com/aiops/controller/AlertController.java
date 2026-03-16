@@ -29,7 +29,7 @@ public class AlertController {
         return "default";
     }
 
-    @PostMapping("/alerts/webhook")
+    @RateLimiter(name = "alert-webhook", fallbackMethod = "rateLimitFallback")
     public ApiResponse<AlertResponse> receiveAlert(
             @RequestHeader("X-API-Key") String apiKey,
             @Valid @RequestBody AlertWebhookRequest request) {
@@ -47,6 +47,11 @@ public class AlertController {
                         .aiStatus(alert.getAiStatus())
                         .build()
         );
+    }
+
+    private ApiResponse<AlertResponse> rateLimitFallback(String apiKey, AlertWebhookRequest request, Throwable t) {
+        log.warn("Rate limit exceeded for alert webhook");
+        return ApiResponse.error(429, "Too many requests, please retry later");
     }
 
     @GetMapping("/alerts")
