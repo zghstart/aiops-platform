@@ -53,20 +53,6 @@ public class AlertManagementController {
     }
 
     /**
-     * Silence an alert
-     */
-    @PostMapping("/{alertId}/silence")
-    public ApiResponse<Void> silenceAlert(
-            @PathVariable String alertId,
-            @RequestParam String tenantId,
-            @RequestBody SilenceRequest request) {
-
-        log.info("Silencing alert: {} for {} minutes", alertId, request.getDurationMinutes());
-        alertReceiver.silence(alertId, request.getDurationMinutes(), request.getReason());
-        return ApiResponse.success();
-    }
-
-    /**
      * Resolve an alert
      */
     @PostMapping("/{alertId}/resolve")
@@ -100,9 +86,6 @@ public class AlertManagementController {
                 switch (request.getAction()) {
                     case "acknowledge":
                         alertReceiver.acknowledge(alertId, tenantId, request.getReason());
-                        break;
-                    case "silence":
-                        alertReceiver.silence(alertId, request.getDurationMinutes(), request.getReason());
                         break;
                     case "resolve":
                         alertReceiver.resolve(alertId, tenantId, request.getReason());

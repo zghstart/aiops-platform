@@ -35,18 +35,14 @@ spring:
 
   data:
     redis:
-      cluster:
-        nodes: ${REDIS_NODES:localhost:6379}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       lettuce:
         pool:
           max-active: 50
           max-idle: 20
           min-idle: 5
-        cluster:
-          refresh:
-            adaptive: true
-            period: 60s
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}

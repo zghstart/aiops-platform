@@ -161,16 +161,34 @@ export const aiApi = {
   }
 }
 
+// Default tenant ID for development
+const DEFAULT_TENANT_ID = 'default'
+
+// API response wrapper
+interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
+  timestamp?: string
+}
+
+// Helper to unwrap API response
+function unwrapResponse<T>(response: ApiResponse<T>): T {
+  return response.data
+}
+
 // Topology APIs
 export const topologyApi = {
-  async get(serviceId: string, params: { depth?: number; direction?: string } = {}): Promise<TopologyData> {
+  async get(serviceId: string, params: { depth?: number; direction?: string; tenantId?: string } = {}): Promise<TopologyData> {
     const query = new URLSearchParams()
+    query.set('tenantId', params.tenantId || DEFAULT_TENANT_ID)
     if (params.depth) query.set('depth', String(params.depth))
     if (params.direction) query.set('direction', params.direction)
 
-    const response = await fetchWithTimeout(`${API_BASE_URL}/topology/${serviceId}?${query}`)
+    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/topology?${query}`)
     if (!response.ok) throw new Error(`Failed to fetch topology: ${response.statusText}`)
-    return response.json()
+    const json: ApiResponse<TopologyData> = await response.json()
+    return unwrapResponse(json)
   }
 }
 
@@ -190,22 +208,32 @@ export const metricsApi = {
 
 // Dashboard APIs
 export const dashboardApi = {
-  async getSummary(): Promise<DashboardSummary> {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/summary`)
+  async getSummary(tenantId?: string): Promise<DashboardSummary> {
+    const query = new URLSearchParams()
+    query.set('tenantId', tenantId || DEFAULT_TENANT_ID)
+    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/summary?${query}`)
     if (!response.ok) throw new Error(`Failed to fetch dashboard summary: ${response.statusText}`)
-    return response.json()
+    const json: ApiResponse<DashboardSummary> = await response.json()
+    return unwrapResponse(json)
   },
 
-  async getTrend(timeRange: string = '1h'): Promise<{ timestamp: string; alerts: number; incidents: number }[]> {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/trend?range=${timeRange}`)
+  async getTrend(timeRange: string = '1h', tenantId?: string): Promise<{ timestamp: string; alerts: number; incidents: number }[]> {
+    const query = new URLSearchParams()
+    query.set('tenantId', tenantId || DEFAULT_TENANT_ID)
+    query.set('range', timeRange)
+    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/trend?${query}`)
     if (!response.ok) throw new Error(`Failed to fetch trend: ${response.statusText}`)
-    return response.json()
+    const json = await response.json()
+    return json.data || json
   },
 
-  async getServiceHealth(): Promise<{ serviceId: string; health: string; latencyP99: number; errorRate: number }[]> {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/services`)
+  async getServiceHealth(tenantId?: string): Promise<{ serviceId: string; health: string; latencyP99: number; errorRate: number }[]> {
+    const query = new URLSearchParams()
+    query.set('tenantId', tenantId || DEFAULT_TENANT_ID)
+    const response = await fetchWithTimeout(`${API_BASE_URL}/dashboard/services?${query}`)
     if (!response.ok) throw new Error(`Failed to fetch service health: ${response.statusText}`)
-    return response.json()
+    const json = await response.json()
+    return json.data || json
   }
 }
 

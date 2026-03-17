@@ -2,11 +2,33 @@ version: '3.8'
 
 services:
   # ============================================
-  # MySQL - 业务数据存储
+  # PostgreSQL - 业务数据存储
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: aiops-postgres
+    network_mode: host
+    environment:
+      POSTGRES_DB: aiops
+      POSTGRES_USER: aiops
+      POSTGRES_PASSWORD: aiops_pass_2024
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init/postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiops -d aiops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # MySQL - 业务数据存储 (已弃用)
   # ============================================
   mysql:
     image: mysql:8.0.36
     container_name: aiops-mysql
+    profiles:
+      - mysql
     environment:
       MYSQL_ROOT_PASSWORD: aiops_root_2024
       MYSQL_DATABASE: aiops
@@ -310,6 +332,7 @@ services:
       - frontend
 
 volumes:
+  postgres-data:
   mysql-data:
   redis-data:
   zookeeper-data:

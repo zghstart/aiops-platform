@@ -17,12 +17,12 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, String> 
 
     List<ServiceEntity> findByTenantIdAndStatus(String tenantId, String status);
 
-    @Query("SELECT s FROM ServiceEntity s WHERE s.tenantId = :tenantId AND s.id IN " +
-           "(SELECT d.targetServiceId FROM ServiceDependency d WHERE d.sourceServiceId = :serviceId AND d.tenantId = :tenantId)")
+    @Query(value = "SELECT s.* FROM service_entities s WHERE s.tenant_id = :tenantId AND s.id IN " +
+           "(SELECT d.target_service_id FROM service_dependencies d WHERE d.source_service_id = :serviceId AND d.tenant_id = :tenantId)", nativeQuery = true)
     List<ServiceEntity> findDownstreamServices(@Param("tenantId") String tenantId, @Param("serviceId") String serviceId);
 
-    @Query("SELECT s FROM ServiceEntity s WHERE s.tenantId = :tenantId AND s.id IN " +
-           "(SELECT d.sourceServiceId FROM ServiceDependency d WHERE d.targetServiceId = :serviceId AND d.tenantId = :tenantId)")
+    @Query(value = "SELECT s.* FROM service_entities s WHERE s.tenant_id = :tenantId AND s.id IN " +
+           "(SELECT d.source_service_id FROM service_dependencies d WHERE d.target_service_id = :serviceId AND d.tenant_id = :tenantId)", nativeQuery = true)
     List<ServiceEntity> findUpstreamServices(@Param("tenantId") String tenantId, @Param("serviceId") String serviceId);
 
     @Modifying

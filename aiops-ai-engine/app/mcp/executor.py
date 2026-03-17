@@ -15,7 +15,7 @@ class ToolExecutor:
     """Tool executor with dependency injection"""
 
     def __init__(self):
-        self Doris_client: DorisClient = None
+        self.doris_client: DorisClient = None
         self.prometheus_client: PrometheusClient = None
         self.cache: RedisCache = None
         self.logger = logger.bind(component="ToolExecutor")

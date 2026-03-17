@@ -45,18 +45,4 @@ public class ReasoningStreamService {
             log.error("Failed to process analysis result for incident: {}", incidentId, e);
         }
     }
-
-    @lombok.Data
-    @lombok.Builder
-    public static class AnalysisResultDTO {
-        private String incidentId;
-        private List<String> alertIds;
-        private String rootCause;
-        private Double confidence;
-        private List<String> evidence;
-        private List<String> recommendations;
-        private Integer tokensUsed;
-        private Double analysisTimeSec;
-        private Instant completedAt;
-    }
 }

@@ -35,22 +35,23 @@ aiops-control-plane/build/
 *.log
 logs/
 
+# Maven
+.m2/
+
 # ============================================
 # Python / FastAPI
 # ============================================
-aiops-ai-engine/__pycache__/
-aiops-ai-engine/*.py[cod]
-aiops-ai-engine/*$py.class
-aiops-ai-engine/*.so
-aiops-ai-engine/.Python
-aiops-ai-engine/env/
-aiops-ai-engine/venv/
-aiops-ai-engine/ENV/
-aiops-ai-engine/env.bak/
-aiops-ai-engine/venv.bak/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 *.egg-info/
-dist/
-build/
 .eggs/
 *.manifest
 *.spec
@@ -64,14 +65,12 @@ htmlcov/
 .hypothesis/
 *.mo
 *.pot
+.mypy_cache/
 
 # ============================================
 # Node.js / React
 # ============================================
-aiops-dashboard/node_modules/
-aiops-dashboard/dist/
-aiops-dashboard/dist-ssr/
-snode/
+node_modules/
 dist/
 dist-ssr/
 *.local
@@ -79,7 +78,7 @@ dist-ssr/
 .env.*.local
 
 # ============================================
-# 环境配置
+# 环境配置 (敏感信息)
 # ============================================
 .env
 .env.local
@@ -92,6 +91,7 @@ dist-ssr/
 credentials.json
 *secret*
 *password*
+!.env.example
 
 # ============================================
 # Docker / K8s
@@ -131,16 +131,12 @@ elasticsearch-data/
 tmp/
 temp/
 .cache/
-.pytest_cache/
-.mypy_cache/
-.dmypy.json
-dmypy.json
 *.pid
 *.seed
 *.pid.lock
 
 # ============================================
-# 测试文件
+# 测试覆盖率
 # ============================================
 coverage/
 .nyc_output/
@@ -159,7 +155,7 @@ Thumbs.db
 *.lnk
 
 # ============================================
-# 其他
+# 编辑器和工具
 # ============================================
 .history/
 *.bak
@@ -170,3 +166,15 @@ Thumbs.db
 *.swp
 *~
 .vscode-test/
+
+# ============================================
+# Claude Code 生成的临时文件
+# ============================================
+*.md.bak
+UNFINISHED_FEATURES.md
+AUDIT_LOG_IMPLEMENTATION.md
+FRONTEND_FIX_SUMMARY.md
+FRONTEND_ISSUES.md
+FRONTEND_VERIFICATION_REPORT.md
+IMPLEMENTATION_REPORT.md
+run-tests.sh

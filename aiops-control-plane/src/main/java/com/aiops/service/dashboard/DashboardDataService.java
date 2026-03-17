@@ -47,17 +47,9 @@ public class DashboardDataService {
                 .build();
     }
 
-    public TopologyDataDTO getTopology(String tenantId, String serviceId, int depth) {
-        Map<String, Object> topology = topologyService.getTopology(
-                serviceId != null ? serviceId : "root", depth);
-
-        return TopologyDataDTO.builder()
-                .tenantId(tenantId)
-                .serviceId(serviceId)
-                .depth(depth)
-                .nodes((List<Map<String, Object>>) topology.get("nodes"))
-                .edges((List<Map<String, Object>>) topology.get("edges"))
-                .build();
+    public com.aiops.dto.TopologyDataDTO getTopology(String tenantId, String serviceId, int depth) {
+        return topologyService.getTopology(
+                tenantId, serviceId != null ? serviceId : "root", depth, "both");
     }
 
     private String calculateSystemHealth(Map<String, Long> alertBySeverity) {

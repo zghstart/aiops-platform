@@ -488,36 +488,6 @@ public class NoiseReducerService {
 
     @Data
     @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class NoiseReductionResult {
-        private boolean suppressed;
-        private String ruleId;
-        private String reason;
-        private String clusterKey;
-        private boolean rootCauseCandidate;
-
-        public static NoiseReductionResult suppressed(String ruleId, String existingId, String reason) {
-            return NoiseReductionResult.builder()
-                    .suppressed(true)
-                    .ruleId(ruleId)
-                    .clusterKey(existingId)
-                    .reason(reason)
-                    .rootCauseCandidate(false)
-                    .build();
-        }
-
-        public static NoiseReductionResult accepted(String clusterKey, boolean rootCauseCandidate) {
-            return NoiseReductionResult.builder()
-                    .suppressed(false)
-                    .clusterKey(clusterKey)
-                    .rootCauseCandidate(rootCauseCandidate)
-                    .build();
-        }
-    }
-
-    @Data
-    @Builder
     @AllArgsConstructor
     public static class NoiseRule {
         private String id;

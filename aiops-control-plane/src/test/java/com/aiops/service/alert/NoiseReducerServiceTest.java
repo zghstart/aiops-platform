@@ -61,7 +61,7 @@ public class NoiseReducerServiceTest {
                 .thenReturn(false);
 
         // When
-        NoiseReducerService.NoiseReductionResult result = noiseReducer.process(alert);
+        NoiseReductionResult result = noiseReducer.process(alert);
 
         // Then
         assertTrue(result.isSuppressed());
@@ -87,7 +87,7 @@ public class NoiseReducerServiceTest {
                 .thenReturn(true);
 
         // When
-        NoiseReducerService.NoiseReductionResult result = noiseReducer.process(alert);
+        NoiseReductionResult result = noiseReducer.process(alert);
 
         // Then
         assertFalse(result.isSuppressed());
@@ -117,7 +117,7 @@ public class NoiseReducerServiceTest {
                 .thenReturn(21L);
 
         // When
-        NoiseReducerService.NoiseReductionResult result = noiseReducer.process(alert);
+        NoiseReductionResult result = noiseReducer.process(alert);
 
         // Then
         assertTrue(result.isSuppressed());
@@ -144,7 +144,7 @@ public class NoiseReducerServiceTest {
                 .thenReturn(1L);
 
         // When
-        NoiseReducerService.NoiseReductionResult result = noiseReducer.process(alert);
+        NoiseReductionResult result = noiseReducer.process(alert);
 
         // Then - should not be root cause candidate (low severity)
         assertFalse(result.isSuppressed());
@@ -166,7 +166,7 @@ public class NoiseReducerServiceTest {
                 .build();
 
         // When
-        NoiseReducerService.NoiseReductionResult result = noiseReducer.process(alert);
+        NoiseReductionResult result = noiseReducer.process(alert);
 
         // Then - should match RULE-002 (flaky health checks)
         assertTrue(result.isSuppressed());
@@ -187,7 +187,7 @@ public class NoiseReducerServiceTest {
                 .build();
 
         // When
-        NoiseReducerService.NoiseReductionResult result = noiseReducer.process(alert);
+        NoiseReductionResult result = noiseReducer.process(alert);
 
         // Then - should generate consistent cluster key
         assertNotNull(result.getClusterKey());
@@ -299,14 +299,14 @@ public class NoiseReducerServiceTest {
                 .thenReturn(true)
                 .thenReturn(false); // Second is duplicate
 
-        NoiseReducerService.NoiseReductionResult result1 = noiseReducer.process(alert1);
+        NoiseReductionResult result1 = noiseReducer.process(alert1);
         assertFalse(result1.isSuppressed());
 
         // Mock finding similar alert
         when(alertRepository.findByServiceAndTimeRange(any(), any(), any(), any()))
                 .thenReturn(Collections.singletonList(alert1));
 
-        NoiseReducerService.NoiseReductionResult result2 = noiseReducer.process(alert2);
+        NoiseReductionResult result2 = noiseReducer.process(alert2);
         // Second similar alert within time window should be suppressed
         assertTrue(result2.isSuppressed() || result2.isRootCauseCandidate());
     }

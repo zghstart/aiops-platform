@@ -54,9 +54,9 @@ public class AlertControllerTest {
     @Test
     void testListAlerts() {
         // Given
-        var mockResult = new ApiResponse.PageResult<>();
+        var mockResult = new ApiResponse.PageResult<com.aiops.dto.AlertVO>();
         mockResult.setItems(Collections.emptyList());
-        mockResult.setTotal(0);
+        mockResult.setTotal(0L);
         mockResult.setPage(1);
         mockResult.setSize(20);
         mockResult.setTotalPages(0);
@@ -70,6 +70,6 @@ public class AlertControllerTest {
         // Then
         assertNotNull(response);
         assertNotNull(response.getData());
-        assertEquals(0, response.getData().getTotal());
+        assertEquals(0L, response.getData().getTotal());
     }
 }

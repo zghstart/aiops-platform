@@ -1,38 +1,57 @@
-import React from 'react'
-import { Row, Col, Card, Typography } from 'antd'
-import { AIStreamLog } from '../../components/AIStreamLog'
-import { TopologyGraph } from '../../components/Topology'
-import { MetricsPanel } from '../../components/Charts/MetricsPanel'
-import { RecentAlerts } from '../../components/Alerts/RecentAlerts'
+import React, { useState, useEffect } from 'react'
+import { Row, Col, Card, Typography, Spin, Empty, message } from 'antd'
+import { AIStreamLog } from '../components/AIStreamLog'
+import { TopologyGraph } from '../components/Topology'
+import { MetricsPanel } from '../components/Charts/MetricsPanel'
+import { RecentAlerts } from '../components/Alerts/RecentAlerts'
+import { topologyApi, dashboardApi } from '../services/api'
+import type { TopologyData, DashboardSummary } from '../types'
 
 const { Title } = Typography
 
-// Mock topology data
-const mockTopologyData = {
-  nodes: [
-    { id: 'gateway', name: 'API Gateway', type: 'gateway', status: 'healthy' },
-    { id: 'payment-service', name: 'Payment Service', type: 'service', status: 'critical' },
-    { id: 'user-service', name: 'User Service', type: 'service', status: 'healthy' },
-    { id: 'order-service', name: 'Order Service', type: 'service', status: 'healthy' },
-    { id: 'db-primary', name: 'DB Primary', type: 'database', status: 'critical' },
-    { id: 'db-replica', name: 'DB Replica', type: 'database', status: 'healthy' },
-    { id: 'redis-cache', name: 'Redis Cache', type: 'cache', status: 'healthy' },
-  ],
-  edges: [
-    { source: 'gateway', target: 'payment-service', type: 'calls' },
-    { source: 'gateway', target: 'user-service', type: 'calls' },
-    { source: 'gateway', target: 'order-service', type: 'calls' },
-    { source: 'payment-service', target: 'db-primary', type: 'depends', status: 'error' },
-    { source: 'payment-service', target: 'db-replica', type: 'depends' },
-    { source: 'payment-service', target: 'redis-cache', type: 'depends' },
-    { source: 'user-service', target: 'db-replica', type: 'depends' },
-    { source: 'order-service', target: 'db-replica', type: 'depends' },
-  ],
-}
-
 export const Dashboard: React.FC = () => {
+  const [topologyData, setTopologyData] = useState<TopologyData | null>(null)
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    setLoading(true)
+    try {
+      // 并行获取拓扑数据和仪表板摘要
+      const [topology, summary] = await Promise.all([
+        topologyApi.get('root', { depth: 2, direction: 'both' }).catch(() => null),
+        dashboardApi.getSummary().catch(() => null)
+      ])
+
+      if (topology) {
+        setTopologyData(topology)
+      }
+      if (summary) {
+        setDashboardSummary(summary)
+      }
+    } catch (error) {
+      message.error('加载数据失败')
+      console.error('Failed to fetch dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleNodeClick = (node: any) => {
     console.log('Node clicked:', node)
+    // 可以跳转到服务详情页或打开详情弹窗
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" tip="加载中..." />
+      </div>
+    )
   }
 
   return (
@@ -49,7 +68,11 @@ export const Dashboard: React.FC = () => {
               height: 456,
             }}
           >
-            <TopologyGraph data={mockTopologyData} onNodeClick={handleNodeClick} />
+            {topologyData ? (
+              <TopologyGraph data={topologyData} onNodeClick={handleNodeClick} />
+            ) : (
+              <Empty description="暂无拓扑数据" style={{ paddingTop: 100 }} />
+            )}
           </Card>
         </Col>
         <Col xs={24} lg={10}>

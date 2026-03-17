@@ -1,5 +1,7 @@
 package com.aiops.controller;
 
+import com.aiops.annotation.Auditable;
+import com.aiops.domain.AuditLog;
 import com.aiops.dto.*;
 import com.aiops.service.alert.AlertReceiverService;
 import com.aiops.service.dashboard.DashboardDataService;
@@ -29,7 +31,14 @@ public class AlertController {
         return "default";
     }
 
-    @RateLimiter(name = "alert-webhook", fallbackMethod = "rateLimitFallback")
+    @PostMapping("/alerts/webhook")
+    @Auditable(
+        operationType = AuditLog.OperationType.CREATE,
+        resourceType = "alert",
+        description = "接收外部告警",
+        sensitive = true
+    )
+    // @RateLimiter(name = "alert-webhook", fallbackMethod = "rateLimitFallback")
     public ApiResponse<AlertResponse> receiveAlert(
             @RequestHeader("X-API-Key") String apiKey,
             @Valid @RequestBody AlertWebhookRequest request) {
@@ -55,6 +64,7 @@ public class AlertController {
     }
 
     @GetMapping("/alerts")
+    @Auditable(operationType = AuditLog.OperationType.READ, resourceType = "alert")
     public ApiResponse<ApiResponse.PageResult<AlertVO>> listAlerts(
             @RequestParam String tenantId,
             @RequestParam(required = false) String status,
@@ -67,6 +77,12 @@ public class AlertController {
     }
 
     @PostMapping("/alerts/{alertId}/silence")
+    @Auditable(
+        operationType = AuditLog.OperationType.UPDATE,
+        resourceType = "alert",
+        description = "静默告警",
+        sensitive = true
+    )
     public ApiResponse<Void> silenceAlert(
             @PathVariable String alertId,
             @RequestBody SilenceRequest request) {

@@ -32,18 +32,28 @@ public class TopologyService {
     // Cache topology data for 5 minutes
     private static final Duration CACHE_TTL = Duration.ofMinutes(5);
 
+    // Flag to track Redis availability
+    private boolean redisAvailable = true;
+
     /**
      * Get service topology with dependencies
      */
     public TopologyDataDTO getTopology(String tenantId, String serviceId, int depth, String direction) {
         log.info("Getting topology for service: {}, depth: {}, direction: {}", serviceId, depth, direction);
 
-        // Check cache
-        String cacheKey = String.format("topology:%s:%s:%d:%s", tenantId, serviceId, depth, direction);
-        String cached = redisTemplate.opsForValue().get(cacheKey);
-        if (cached != null) {
-            log.debug("Topology cache hit for {}", serviceId);
-            // Note: In production, use JSON deserialization
+        // Check cache (skip if Redis is unavailable)
+        if (redisAvailable) {
+            try {
+                String cacheKey = String.format("topology:%s:%s:%d:%s", tenantId, serviceId, depth, direction);
+                String cached = redisTemplate.opsForValue().get(cacheKey);
+                if (cached != null) {
+                    log.debug("Topology cache hit for {}", serviceId);
+                    // Note: In production, use JSON deserialization
+                }
+            } catch (Exception e) {
+                log.warn("Redis cache unavailable, proceeding without cache: {}", e.getMessage());
+                redisAvailable = false;
+            }
         }
 
         // Get root service
@@ -336,9 +346,16 @@ public class TopologyService {
      */
     public void updateServiceHealth(String tenantId, String serviceId, String health) {
         serviceRepository.updateHealth(tenantId, serviceId, health);
-        // Invalidate cache
-        String cachePattern = String.format("topology:%s:%s:*", tenantId, serviceId);
-        // redisTemplate.delete(redisTemplate.keys(cachePattern));
+        // Invalidate cache (ignore if Redis is unavailable)
+        if (redisAvailable) {
+            try {
+                String cachePattern = String.format("topology:%s:%s:*", tenantId, serviceId);
+                // redisTemplate.delete(redisTemplate.keys(cachePattern));
+            } catch (Exception e) {
+                log.warn("Failed to invalidate cache: {}", e.getMessage());
+                redisAvailable = false;
+            }
+        }
     }
 
     /**
@@ -346,9 +363,16 @@ public class TopologyService {
      */
     public void addDependency(String tenantId, String sourceService, String targetService) {
         serviceRepository.addDependency(tenantId, sourceService, targetService);
-        // Invalidate caches
-        redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, sourceService));
-        redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, targetService));
+        // Invalidate caches (ignore if Redis is unavailable)
+        if (redisAvailable) {
+            try {
+                redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, sourceService));
+                redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, targetService));
+            } catch (Exception e) {
+                log.warn("Failed to invalidate cache: {}", e.getMessage());
+                redisAvailable = false;
+            }
+        }
     }
 
     /**
@@ -356,8 +380,15 @@ public class TopologyService {
      */
     public void removeDependency(String tenantId, String sourceService, String targetService) {
         serviceRepository.removeDependency(tenantId, sourceService, targetService);
-        // Invalidate caches
-        redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, sourceService));
-        redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, targetService));
+        // Invalidate caches (ignore if Redis is unavailable)
+        if (redisAvailable) {
+            try {
+                redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, sourceService));
+                redisTemplate.delete(String.format("topology:%s:%s:*", tenantId, targetService));
+            } catch (Exception e) {
+                log.warn("Failed to invalidate cache: {}", e.getMessage());
+                redisAvailable = false;
+            }
+        }
     }
 }

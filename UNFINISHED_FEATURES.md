@@ -13,6 +13,47 @@
 
 ## ✅ 已完成 (本次更新)
 
+### 1. 审计日志系统 ✅
+
+**完成时间：** 2026-03-17
+
+**核心组件：**
+- ✅ `AuditLog` 实体 - 支持全面审计字段
+- ✅ `AuditLogRepository` - 数据访问层，支持多条件查询
+- ✅ `AuditLogService` - 业务逻辑层，统计功能
+- ✅ `AuditLogController` - REST API，查询和统计接口
+- ✅ `@Auditable` 注解 - 方法级审计标记
+- ✅ `AuditLogAspect` 切面 - 自动拦截记录
+- ✅ 数据库迁移脚本 - MySQL表创建
+- ✅ 单元测试 - 覆盖核心功能
+- ✅ 使用文档 - 完整指南
+
+**功能特性：**
+- 自动记录所有标记方法的操作
+- 支持敏感操作标记和单独日志输出
+- 多条件组合查询（租户/用户/时间/操作类型）
+- 资源操作历史追踪
+- 操作统计分析
+- HTTP请求详情记录（方法/路径/参数/IP）
+- 响应时间和状态码记录
+- 成功/失败状态追踪
+
+**已应用到以下接口：**
+- `POST /api/v1/alerts/webhook` - 接收告警（敏感）
+- `GET /api/v1/alerts` - 查询告警列表
+- `POST /api/v1/alerts/{id}/silence` - 静默告警（敏感）
+
+**API端点：**
+- `GET /api/v1/audit-logs` - 查询审计日志
+- `GET /api/v1/audit-logs/resource/{type}/{id}` - 资源历史
+- `GET /api/v1/audit-logs/statistics` - 操作统计
+- `GET /api/v1/audit-logs/failures` - 失败操作
+- `GET /api/v1/audit-logs/sensitive` - 敏感操作
+
+---
+
+## ✅ 已完成 (上次更新)
+
 ### 1. 测试框架搭建 ✅
 
 #### Python AI 引擎测试 ✅
@@ -61,9 +102,36 @@ aiops-dashboard/
 | 功能 | 状态 | 说明 | 文件 |
 |------|------|------|------|
 | **错误重试机制** | ✅ 完成 | 3次指数退避 + 熔断器 | `app/llm/client.py` |
+| **Java编译错误修复** | ✅ 完成 | 100+错误 → 0错误，编译通过 | 多个Java文件 |
+| **构建工具统一** | ✅ 完成 | 删除Gradle，统一使用Maven | `pom.xml` |
 | **API限流** | ⚠️ 代码 | @RateLimiter注解 (需Bucket4j依赖) | `AlertController.java` |
 | **Python测试框架** | ✅ 完成 | pytest + asyncio + mock | `tests/` |
 | **Dashboard测试** | ✅ 完成 | vitest + React Testing Library | `__tests__/` |
+
+#### Java 编译错误修复详情 ✅
+
+修复了以下关键问题：
+- ✅ **TopologyDTO 文件结构** - 拆分多个public类到独立文件
+  - `TopologyDataDTO.java` ✅
+  - `TopologyNodeDTO.java` ✅
+  - `TopologyEdgeDTO.java` ✅
+  - `TopologyImpactDTO.java` ✅
+
+- ✅ **Lombok 配置** - 修复pom.xml中的版本变量
+
+- ✅ **重复类定义** - 删除内部类，使用独立DTO类
+  - `AnalysisResultDTO` - 使用 `com.aiops.dto.AnalysisResultDTO`
+  - `NoiseReductionResult` - 创建独立类文件
+
+- ✅ **缺失服务实现**
+  - 创建 `IncidentService.java` ✅
+  - 添加 `AlertReceiverService` 缺失方法 ✅
+  - 添加 `AlertRepository.countBySeverity()` ✅
+
+- ✅ **构建工具统一**
+  - 删除 `build.gradle` ✅
+  - 清理 Gradle 相关文件 ✅
+  - 统一使用 Maven (`pom.xml`) ✅
 
 ---
 
@@ -99,7 +167,7 @@ aiops-dashboard/
 | 模块 | 缺失功能 | 状态 | 优先级 |
 |------|----------|------|--------|
 | **Java控制面** | | | |
-| | AuditLog审计日志 | 未开始 | P0 |
+| | ~~AuditLog审计日志~~ | ✅ 已完成 | P0 |
 | | 权限检查逻辑 | 框架存在 | P0 |
 | | 多租户数据隔离验证 | 未验证 | P0 |
 | | API限流 (Bucket4j依赖) | 代码完成待启用 | P1 |
@@ -176,8 +244,11 @@ aiops-dashboard/
 ### 立即处理 (本周)
 1. ✅ ~~添加核心单元测试~~ - 框架完成，继续补充测试用例
 2. ✅ ~~添加错误重试机制~~ - 已完成
-3. ⏭️ **完善审计日志** - AOP切面实现
-4. ⏭️ **补充MCP工具测试** - search_logs, query_metrics
+3. ✅ ~~修复Java编译错误~~ - 已完成 (100+ → 0)
+4. ✅ ~~统一构建工具~~ - 已完成 (Maven)
+5. ✅ ~~完善审计日志~~ - 已完成 (AOP切面+完整功能)
+6. ⏭️ **补充MCP工具测试** - search_logs, query_metrics
+7. ⏭️ **权限检查增强** - 方法级权限验证
 
 ### 近期处理 (下周)
 5. ⏭️ 启用API限流 (添加Bucket4j依赖)
@@ -197,10 +268,12 @@ aiops-dashboard/
 |------|--------|--------|------|------|
 | 测试覆盖率 | ~12% | 80% | -68% | +12% ⬆️ |
 | 单元测试数 | 5 | 100+ | -95 | +5 ⬆️ |
+| Java编译错误 | 0 | 0 | 0 | -100+ ✅ |
+| 构建工具 | Maven | Maven | ✅ | 统一 ✅ |
 | 功能缺陷数 | 未知 | 0 | 未知 | - |
 | CI/CD流程 | 0% | 90% | -90% | - |
 
 ---
 
-*最后更新: 2024-03-16*
-*本次完成: 测试框架搭建 + 错误重试机制 + 3个测试文件 (580行)*
+*最后更新: 2026-03-16*
+*本次完成: Java编译错误修复(100+→0) + 构建工具统一(Maven) + 测试框架搭建 + 错误重试机制*

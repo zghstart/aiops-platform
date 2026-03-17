@@ -46,6 +46,9 @@ public interface AlertRepository extends JpaRepository<Alert, String> {
     @Query("SELECT COUNT(a) FROM Alert a WHERE a.tenantId = :tenantId AND a.status = 'active'")
     long countActiveByTenant(@Param("tenantId") String tenantId);
 
+    @Query("SELECT a.severity, COUNT(a) FROM Alert a WHERE a.tenantId = :tenantId AND a.status = 'active' GROUP BY a.severity")
+    List<Object[]> countBySeverity(@Param("tenantId") String tenantId);
+
     @Query("SELECT a FROM Alert a WHERE a.tenantId = :tenantId AND a.serviceId = :serviceId " +
            "AND a.startsAt BETWEEN :start AND :end ORDER BY a.startsAt DESC")
     List<Alert> findByServiceAndTimeRange(@Param("tenantId") String tenantId,

@@ -67,7 +67,7 @@ public class AITaskDispatcher {
                 "serviceId", serviceId,
                 "instance", instance != null ? instance : "",
                 "timeRange", timeRange,
-                "topology", topologyService.getTopology(serviceId, 2),
+                "topology", topologyService.getTopology(alert.getTenantId(), serviceId, 2, "both"),
                 "alertTitle", alert.getTitle(),
                 "alertDescription", alert.getDescription() != null ? alert.getDescription() : ""
         );

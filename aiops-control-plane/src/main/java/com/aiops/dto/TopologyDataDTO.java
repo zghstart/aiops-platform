@@ -13,9 +13,12 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TopologyDataDTO {
-    private String tenantId;
     private String serviceId;
+    private List<TopologyNodeDTO> nodes;
+    private List<TopologyEdgeDTO> edges;
     private int depth;
-    private List<Map<String, Object>> nodes;
-    private List<Map<String, Object>> edges;
+    private String direction;
+    private TopologyImpactDTO impactAnalysis;
+    private Map<String, Object> metadata;
+    private boolean cacheHit;
 }

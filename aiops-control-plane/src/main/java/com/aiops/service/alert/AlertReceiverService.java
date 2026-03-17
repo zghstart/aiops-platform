@@ -102,6 +102,23 @@ public class AlertReceiverService {
         log.info("Alert {} silenced for {} minutes, reason: {}", alertId, durationMinutes, reason);
     }
 
+    @Transactional
+    public void acknowledge(String alertId, String tenantId, String reason) {
+        // TODO: Implement acknowledge logic
+        log.info("Alert {} acknowledged by tenant {}, reason: {}", alertId, tenantId, reason);
+    }
+
+    @Transactional
+    public void resolve(String alertId, String tenantId, String resolution) {
+        // TODO: Implement resolve logic
+        log.info("Alert {} resolved by tenant {}, resolution: {}", alertId, tenantId, resolution);
+    }
+
+    public AlertModel get(String alertId, String tenantId) {
+        // TODO: Implement get logic
+        return null;
+    }
+
     private IncidentModel findOrCreateIncident(Alert alert, String clusterKey) {
         Optional<Incident> existing = incidentRepository
                 .findActiveByClusterKey(alert.getTenantId(), clusterKey, Instant.now().minusSeconds(1800));

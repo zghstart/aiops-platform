@@ -158,10 +158,9 @@ export interface MetricsResponse {
 // Dashboard summary
 export interface DashboardSummary {
   activeAlerts: number
-  p1Count: number
-  p2Count: number
-  analyzingCount: number
-  analyzedToday: number
-  avgAnalysisTime: number
-  noiseReductionRate: number
+  alertBySeverity: Record<string, number>
+  resolvedToday: number
+  averageMTTR: number
+  systemHealth: string
+  timestamp?: string
 }

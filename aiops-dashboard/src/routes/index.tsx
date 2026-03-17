@@ -1,10 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { Dashboard } from './Dashboard'
+import { Dashboard } from '../pages/Dashboard'
 import { Layout } from '../components/Layout'
-import { AlertDetail } from './AlertDetail'
-import { IncidentList } from './IncidentList'
-import { IncidentDetail } from './IncidentDetail'
-import { TopologyPage } from './TopologyPage'
+import { AlertDetail } from '../pages/AlertDetail'
+import { IncidentList } from '../pages/IncidentList'
+import { IncidentDetail } from '../pages/IncidentDetail'
+import { TopologyPage } from '../pages/TopologyPage'
 
 export const router = createBrowserRouter([
   {

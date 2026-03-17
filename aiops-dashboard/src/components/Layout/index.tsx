@@ -1,7 +1,7 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 import { Layout as AntLayout } from 'antd'
-import { Header } from './Header'
+import { Header } from '../Header'
 
 const { Content } = AntLayout
 
