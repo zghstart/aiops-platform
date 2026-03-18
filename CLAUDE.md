@@ -87,20 +87,72 @@
 
 ### 开发环境启动
 
-```bash
-# 1. 启动基础设施
-docker-compose -f deploy/docker-compose.dev.yml up -d
+#### 1. 启动基础设施服务
 
-# 2. 启动 Java 控制面
+```bash
+cd aiops-deploy/docker
+
+# 启动所有基础设施服务
+docker compose up -d
+
+# 检查服务状态
+docker compose ps
+```
+
+#### 2. 启动 Doris（首次部署需手动添加 BE）
+
+Doris 需要先启动 FE，待 FE 就绪后再启动 BE 并注册：
+
+```bash
+# 获取 FE 容器 IP
+FE_IP=$(docker inspect aiops-doris-fe --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')
+
+# 在 FE 中添加 BE 节点
+docker exec aiops-doris-fe mysql -uroot -P9030 -h127.0.0.1 \
+  -e "ALTER SYSTEM ADD BACKEND '${FE_IP%.*}.13:9050';" 2>/dev/null || true
+
+# 验证 BE 状态
+docker exec aiops-doris-fe mysql -uroot -P9030 -h127.0.0.1 -e "SHOW BACKENDS\G"
+```
+
+#### 3. 验证基础设施服务
+
+```bash
+# 一键检查所有服务
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep aiops
+```
+
+**基础设施服务清单（13 个服务）：**
+
+| 服务 | 端口 | 用途 |
+|-----|------|------|
+| postgres | 5432 (host) | 业务数据存储 |
+| redis | 6379 | 缓存与会话 |
+| zookeeper | 2181 | Kafka 依赖 |
+| kafka | 9092 | 消息队列 |
+| kafka-ui | 8081 | Kafka 管理界面 |
+| doris-fe | 8030/9030 | 日志存储 FE |
+| doris-be | 9040 | 日志存储 BE |
+| etcd | 2379 | Milvus 依赖 |
+| minio | 9000/9001 | 对象存储 |
+| milvus | 19530 | 向量检索 |
+| prometheus | 9090 | 监控指标 |
+| grafana | 3002 | 监控面板 |
+| jaeger | 16686 | 链路追踪 |
+
+#### 4. 启动应用服务
+
+```bash
+# 启动 Java 控制面
 cd aiops-control-plane
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-# 3. 启动 Python AI 引擎
+# 启动 Python AI 引擎
 cd aiops-ai-engine
 pip install -r requirements.txt
 python -m app.main
 
-# 4. 启动前端
+# 启动前端
 cd aiops-dashboard
 npm install
 npm run dev
@@ -108,10 +160,40 @@ npm run dev
 
 ### 访问地址
 
-- 控制面 API: http://localhost:8080
-- AI 引擎: http://localhost:8000
-- 大屏: http://localhost:3000
-- Jaeger UI: http://localhost:16686
+| 服务 | 地址 | 说明 |
+|-----|------|------|
+| 控制面 API | http://localhost:8080 | Java 后端 |
+| AI 引擎 | http://localhost:8000 | Python AI |
+| 大屏 | http://localhost:3000 | 前端界面 |
+| Kafka UI | http://localhost:8081 | 消息队列管理 |
+| Doris FE | http://localhost:8030 | 日志存储 |
+| MinIO | http://localhost:9001 | 对象存储控制台 |
+| Milvus | http://localhost:19530 | 向量数据库 |
+| Prometheus | http://localhost:9090 | 监控指标 |
+| Grafana | http://localhost:3002 | 监控面板 |
+| Jaeger | http://localhost:16686 | 链路追踪 |
+
+### 常用运维命令
+
+```bash
+# 停止所有基础设施
+cd aiops-deploy/docker && docker compose down
+
+# 停止并删除数据卷
+docker compose down -v
+
+# 查看服务日志
+docker compose logs -f doris-fe
+
+# 重启单个服务
+docker compose restart kafka
+
+# Doris MySQL 连接
+mysql -h127.0.0.1 -P9030 -uroot
+
+# Redis 连接
+redis-cli -h localhost -p 6379 -a aiops_redis_2024
+```
 
 ---
 
@@ -264,4 +346,4 @@ aiops/
 
 ---
 
-*最后更新: 2024-03-15*
+*最后更新: 2026-03-18*

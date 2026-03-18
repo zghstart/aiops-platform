@@ -5,6 +5,7 @@ import { AlertDetail } from '../pages/AlertDetail'
 import { IncidentList } from '../pages/IncidentList'
 import { IncidentDetail } from '../pages/IncidentDetail'
 import { TopologyPage } from '../pages/TopologyPage'
+// import { MonitoringIntegration } from '../pages/MonitoringIntegration'
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
         path: 'topology',
         element: <TopologyPage />,
       },
+      // {
+      //   path: 'monitoring',
+      //   element: <MonitoringIntegration />,
+      // },
     ],
   },
 ])

@@ -7,17 +7,15 @@ interface TopologyGraphProps {
       id: string
       name: string
       type: string
-      status?: string
-      metrics?: {
-        cpu?: number
-        memory?: number
-      }
+      health?: string
+      latencyP99?: number
+      errorRate?: number
+      qps?: number
     }>
     edges: Array<{
       source: string
       target: string
       type?: string
-      status?: string
     }>
   }
   onNodeClick?: (node: any) => void
@@ -29,6 +27,35 @@ export const TopologyGraph: React.FC<TopologyGraphProps> = ({ data, onNodeClick 
 
   useEffect(() => {
     if (!containerRef.current) return
+
+    // Transform data
+    const nodes = data.nodes.map((node) => ({
+      id: node.id,
+      label: node.name,
+      type: node.type,
+      size: node.type === 'service' ? 40 : 30,
+      style: {
+        fill: getNodeColor(node.health, node.type),
+        stroke: getNodeStroke(node.health),
+        lineWidth: 2,
+      },
+      labelCfg: {
+        style: {
+          fill: '#fff',
+          fontSize: 12,
+        },
+      },
+    }))
+
+    const edges = data.edges.map((edge) => ({
+      source: edge.source,
+      target: edge.target,
+      style: {
+        stroke: 'rgba(255,255,255,0.3)',
+        lineWidth: 1,
+        endArrow: true,
+      },
+    }))
 
     const graph = new Graph({
       container: containerRef.current,
@@ -43,6 +70,7 @@ export const TopologyGraph: React.FC<TopologyGraphProps> = ({ data, onNodeClick 
         linkDistance: 100,
         nodeStrength: -50,
       },
+      data: { nodes, edges },
       nodeStateStyles: {
         hover: {
           stroke: '#00d4ff',
@@ -62,37 +90,6 @@ export const TopologyGraph: React.FC<TopologyGraphProps> = ({ data, onNodeClick 
     })
 
     graphRef.current = graph
-
-    // Transform data
-    const nodes = data.nodes.map((node) => ({
-      id: node.id,
-      label: node.name,
-      type: node.type,
-      size: node.type === 'service' ? 40 : 30,
-      style: {
-        fill: getNodeColor(node.status, node.type),
-        stroke: getNodeStroke(node.status),
-        lineWidth: 2,
-      },
-      labelCfg: {
-        style: {
-          fill: '#fff',
-          fontSize: 12,
-        },
-      },
-    }))
-
-    const edges = data.edges.map((edge) => ({
-      source: edge.source,
-      target: edge.target,
-      style: {
-        stroke: edge.status === 'error' ? '#ff4d4f' : 'rgba(255,255,255,0.3)',
-        lineWidth: edge.status === 'error' ? 3 : 1,
-        endArrow: true,
-      },
-    }))
-
-    graph.data({ nodes, edges })
     graph.render()
 
     graph.on('node:click', (evt) => {

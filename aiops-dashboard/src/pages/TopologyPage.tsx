@@ -76,6 +76,27 @@ export const TopologyPage: React.FC = () => {
       graphRef.current.destroy()
     }
 
+    // Transform data for G6
+    const nodes = data.nodes.map((node: TopologyNode) => ({
+      id: node.id,
+      label: node.name,
+      type: getNodeType(node.type),
+      style: {
+        fill: getNodeColor(node.health),
+        stroke: node.isRoot ? '#00d4ff' : '#666',
+        lineWidth: node.isRoot ? 4 : 2,
+      },
+    }))
+
+    const edges = data.edges.map((edge: TopologyEdge) => ({
+      source: edge.source,
+      target: edge.target,
+      label: edge.type.replace('_', ' '),
+      style: {
+        stroke: edge.type.includes('error') ? '#ff4d4f' : '#888',
+      },
+    }))
+
     const graph = new Graph({
       container: containerRef.current,
       width: containerRef.current.clientWidth,
@@ -117,30 +138,9 @@ export const TopologyPage: React.FC = () => {
           },
         },
       },
+      data: { nodes, edges },
     })
 
-    // Transform data for G6
-    const nodes = data.nodes.map((node: TopologyNode) => ({
-      id: node.id,
-      label: node.name,
-      type: getNodeType(node.type),
-      style: {
-        fill: getNodeColor(node.health),
-        stroke: node.isRoot ? '#00d4ff' : '#666',
-        lineWidth: node.isRoot ? 4 : 2,
-      },
-    }))
-
-    const edges = data.edges.map((edge: TopologyEdge) => ({
-      source: edge.source,
-      target: edge.target,
-      label: edge.type.replace('_', ' '),
-      style: {
-        stroke: edge.type.includes('error') ? '#ff4d4f' : '#888',
-      },
-    }))
-
-    graph.data({ nodes, edges })
     graph.render()
 
     // Fit to view

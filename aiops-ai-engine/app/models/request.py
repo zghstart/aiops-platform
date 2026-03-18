@@ -55,7 +55,7 @@ class FeedbackRequest(BaseModel):
     rating: int = Field(..., ge=1, le=5, description="Rating 1-5")
     correct_root_cause: Optional[str] = Field(None, description="Correct root cause if different")
     comments: Optional[str] = Field(None, description="Additional comments")
-	metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
 
 
 class ToolCall(BaseModel):

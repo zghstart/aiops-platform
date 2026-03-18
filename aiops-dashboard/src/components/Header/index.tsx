@@ -1,17 +1,23 @@
 import React from 'react'
-import { Layout, Badge, Space, Typography, theme } from 'antd'
+import { Layout, Badge, Space, Typography, Menu } from 'antd'
+import { Link, useLocation } from 'react-router-dom'
 import {
   DashboardOutlined,
   AlertOutlined,
   SettingOutlined,
   BellOutlined,
   FullscreenOutlined,
+  LinkOutlined,
+  AppstoreOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons'
 
 const { Header: AntHeader } = Layout
 const { Title, Text } = Typography
 
 export const Header: React.FC = () => {
+  const location = useLocation()
+  const currentPath = location.pathname
   const currentTime = new Date().toLocaleString('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -20,6 +26,24 @@ export const Header: React.FC = () => {
     minute: '2-digit',
     second: '2-digit',
   })
+
+  const menuItems = [
+    {
+      key: '/',
+      label: <Link to="/">首页</Link>,
+      icon: <DashboardOutlined />,
+    },
+    {
+      key: '/topology',
+      label: <Link to="/topology">服务拓扑</Link>,
+      icon: <LinkOutlined />,
+    },
+    {
+      key: '/incidents',
+      label: <Link to="/incidents">事件管理</Link>,
+      icon: <AlertOutlined />,
+    },
+  ]
 
   return (
     <AntHeader
@@ -67,6 +91,17 @@ export const Header: React.FC = () => {
             Intelligent Operations Platform
           </Text>
         </div>
+        <Menu
+          mode="horizontal"
+          selectedKeys={[currentPath]}
+          items={menuItems}
+          style={{
+            background: 'transparent',
+            borderBottom: 'none',
+            marginLeft: 40,
+          }}
+          theme="dark"
+        />
       </Space>
 
       {/* Center: Time & Status */}
@@ -85,11 +120,29 @@ export const Header: React.FC = () => {
       {/* Right: Actions */}
       <Space size="large">
         <Badge count={5} size="small">
-          <BellOutlined style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} />
+          <BellOutlined 
+            style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} 
+            onClick={() => console.log('Bell clicked')} 
+          />
         </Badge>
-        <FullscreenOutlined style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} />
-        <AlertOutlined style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} />
-        <SettingOutlined style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} />
+        <FullscreenOutlined 
+          style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} 
+          onClick={() => {
+            if (document.fullscreenElement) {
+              document.exitFullscreen()
+            } else {
+              document.documentElement.requestFullscreen()
+            }
+          }} 
+        />
+        <AlertOutlined 
+          style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} 
+          onClick={() => console.log('Alert clicked')} 
+        />
+        <SettingOutlined 
+          style={{ fontSize: 20, color: '#fff', cursor: 'pointer' }} 
+          onClick={() => console.log('Setting clicked')} 
+        />
       </Space>
     </AntHeader>
   )

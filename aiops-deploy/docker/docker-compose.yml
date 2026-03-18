@@ -127,12 +127,10 @@ services:
   # Apache Doris - 日志/指标/链路统一存储
   # ============================================
   doris-fe:
-    image: apache/doris:2.0.3-fe-ubuntu
+    image: apache/doris:fe-3.1.3
     container_name: aiops-doris-fe
-    hostname: doris-fe
-    ports:
-      - "8030:8030"
-      - "9030:9030"
+    hostname: fe
+    network_mode: host
     environment:
       - FE_SERVERS=fe1:127.0.0.1:9010
       - FE_ID=1
@@ -143,17 +141,15 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    networks:
-      - aiops-network
 
   doris-be:
-    image: apache/doris:2.0.3-be-ubuntu
+    image: apache/doris:be-3.1.3
     container_name: aiops-doris-be
-    hostname: doris-be
+    hostname: be
+    network_mode: host
     depends_on:
-      - doris-fe
-    ports:
-      - "9040:9040"
+      doris-fe:
+        condition: service_healthy
     environment:
       - FE_SERVERS=fe1:127.0.0.1:9010
       - BE_ADDR=127.0.0.1:9050
@@ -164,8 +160,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    networks:
-      - aiops-network
 
   # ============================================
   # Milvus - 向量检索 (RAG 知识库)
@@ -179,7 +173,7 @@ services:
       - ETCD_QUOTA_BACKEND_BYTES=4294967296
     volumes:
       - etcd-data:/etcd
-    command: etcd -advertise-client-urls http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379
+    command: etcd -advertise-client-urls http://etcd:2379 -listen-client-urls http://0.0.0.0:2379
     networks:
       - aiops-network
 
@@ -212,6 +206,8 @@ services:
     environment:
       ETCD_ENDPOINTS: etcd:2379
       MINIO_ADDRESS: minio:9000
+      MINIO_ACCESS_KEY_ID: minioadmin
+      MINIO_SECRET_ACCESS_KEY: minioadmin123
     volumes:
       - milvus-data:/var/lib/milvus
     ports:
@@ -263,7 +259,7 @@ services:
     image: grafana/grafana:10.2.2
     container_name: aiops-grafana
     ports:
-      - "3001:3000"
+      - "3002:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
     volumes:
@@ -305,7 +301,7 @@ services:
     environment:
       - VLLM_BASE_URL=http://host.docker.internal:8001/v1
       - MILVUS_HOST=milvus-standalone
-      - DORIS_HOST=doris-fe
+      - DORIS_HOST=localhost
     depends_on:
       - milvus-standalone
       - doris-fe
